@@ -16,6 +16,12 @@ To extract answers from evidence, we utilize FARM framework from [deepset.ai](ht
 Given a claim, we have generated its associated questions and answers, we also extracted answers from the evidence of the claim. Now we will compare the answer pairs to predict the label of the claim. For for encoding all input representation, we use *[microsoft/mpnet-base](microsoft/mpnet-base)*.
 
 ### Baselines
+We compare our answer comparison model with five baselines:
+- Blackbox 
+- QUALS score
+- Token level F1-score
+- BERTscore
+- Cosine similarity
 
 ### Ablation Study
 For the ablation study, we removed the attention layer of our proposed attention model. Five different inputs are compared:
