@@ -14,7 +14,7 @@ To extract answers from evidence, we utilize FARM framework from [deepset.ai](ht
 ## Answer Comparison
 Given a claim, we have generated its associated questions and answers and extracted answers from the evidence of the claim. Now we will compare the answer pairs to predict the label of the claim. 
 
-To train our attention model, we first need to prepare the data in the right format, which is provided in `Data-preparation.py`.
+To train our attention model, we first need to prepare the data in the right format, which is provided in `Data-organization.py`.
 
 For for encoding all input representation, we use [`microsoft/mpnet-base`](microsoft/mpnet-base).
 
