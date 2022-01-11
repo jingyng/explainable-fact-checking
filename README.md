@@ -16,7 +16,7 @@ Given a claim, we have generated its associated questions and answers and extrac
 
 To train our attention model, we first need to prepare the data in the right format, which is provided in `Data-organization.py`.
 
-For for encoding all input representation, we use [`microsoft/mpnet-base`](microsoft/mpnet-base).
+After organizing input data, for for encoding all input representation, we use [`microsoft/mpnet-base`](microsoft/mpnet-base). The code for training is in `qa-additive-attention.py`.
 
 ## Baselines
 We compare our answer comparison model with five baselines:
