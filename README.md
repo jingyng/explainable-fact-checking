@@ -29,7 +29,9 @@ We compare our answer comparison model with five baselines:
 We provide a jupyter notebook named `Baselines.ipynb` for the implementation of baselines.
 
 ## Ablation Study
-For the ablation study, we removed the attention layer of our proposed attention model. Five different inputs are compared:
+For the ablation study, we removed the attention layer of our proposed attention model. To reproduce, first organize the data following the code in `Data-organization-ablation.py`.
+
+Five different inputs are compared:
 - C: claim only (code can be found in `ablation-c.py`)
 - Q: questios only (all questions concatenated,code can be found in `ablation-q.py`)
 - AA: answer-pairs only (all answers concatenated,code can be found in `ablation-aa.py` )
