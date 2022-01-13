@@ -20,11 +20,11 @@ After organizing input data, for for encoding all input representation, we use [
 
 ## Baselines
 We compare our answer comparison model with five baselines:
-- Blackbox: the baseline method from the orignial FM2 dataset paper
-- QUALS score: automatic metric for checking factual consistency proposed by [Nan et al.](https://arxiv.org/abs/2105.04623)
-- Token level F1-score: a standard metric for question-answertasks, which counts words overlap between two answers
-- BERTscore:a common metric for measuring the similarity of two sentences. We use the default model `roberta-large`
-- Cosine similarity: a metric also used for measuring sentence similarity. We use sentence transformer `all-mpnet-base-v2`
+- Blackbox: the baseline method from the orignial FM2 dataset paper.
+- QUALS score: automatic metric for checking factual consistency proposed by [Nan et al.](https://arxiv.org/abs/2105.04623), QUALS scores of our results are available at [Google Drive](https://drive.google.com/file/d/1GiCOJCnfcFHANMlHu5INkI-JoxGo7cBN/view?usp=sharing).
+- Token level F1-score: a standard metric for question-answertasks, which counts words overlap between two answers.
+- BERTscore:a common metric for measuring the similarity of two sentences. We use the default model `roberta-large`.
+- Cosine similarity: a metric also used for measuring sentence similarity. We use sentence transformer `all-mpnet-base-v2`.
 
 We provide a jupyter notebook named `Baselines.ipynb` for the implementation of baselines.
 
