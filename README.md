@@ -1,5 +1,6 @@
 # [Explainable Fact Checking through Question Answering](https://arxiv.org/abs/2110.05369)
 
+We use wandb for recording all experiments, you can find the details from [here](https://wandb.ai/fakejing/icassp2022).
 ## Dataset
 The dataset is available at: [Fool Me Twice](https://github.com/google-research/fool-me-twice)
 
