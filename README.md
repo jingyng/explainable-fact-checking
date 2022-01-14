@@ -16,7 +16,11 @@ We have generated questions and answers from claims, and extracted answers from 
 
 To train our attention model, we first need to prepare the data in the right format, which is provided in `Data-organization.py`.
 
+You need to change the data directory to your own, then run `python Data-organization.py`.
+
 After organizing input data, for for encoding all input representation, we use [`microsoft/mpnet-base`](microsoft/mpnet-base). The code for training is in `qa-additive-attention.py`.
+
+Example: `python qa-additive-attention.py --run_name final-fm2-nocat-cq-aa-gold --bert1 microsoft/mpnet-base --bsz 32 --epochs 5 --num_questions 10`
 
 ## Baselines
 We compare our answer comparison model with five baselines:
