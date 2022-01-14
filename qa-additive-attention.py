@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
 import wandb
 
-# import os
-# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-# os.environ["CUDA_VISIBLE_DEVICES"]="0"
+import os
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="4"
 
 import numpy as np
 import argparse
@@ -55,10 +53,6 @@ class MyDataset(Dataset):
     def __init__(self, df, args):
 
         self.tokenizer1 = AutoTokenizer.from_pretrained(args.bert1)
-#         self.tokenizer2 = AutoTokenizer.from_pretrained(pretrain_model_path2)
-        
-
-#         a2 = list(zip(df.answer_text, df.answer_retrieved))
         
         claim_input = self.tokenizer1.batch_encode_plus(
             batch_text_or_text_pairs=df.text.to_list(),  # the sentence to be encoded
@@ -123,9 +117,6 @@ class MyDataset(Dataset):
         return len(self.y_data)
 
 
-# In[5]:
-
-
 def to_var(x):
     if torch.cuda.is_available():
         x = x.cuda()
@@ -136,20 +127,10 @@ def to_np(x):
     return x.data.cpu().numpy()
 
 
-# In[6]:
-
-
-def mean_pooling(model_output, attention_mask):
-    token_embeddings = model_output[0] #First element of model_output contains all token embeddings
-    input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
-    return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
-
-
-# In[7]:
-
-
 class AdditiveAttention(nn.Module):
     """
+     source: https://github.com/sooftware/attentions/blob/master/attentions.py
+     
      Applies a additive attention (bahdanau) mechanism on the output features from the decoder.
      Additive attention proposed in "Neural Machine Translation by Jointly Learning to Align and Translate" paper.
      Args:
@@ -178,32 +159,21 @@ class AdditiveAttention(nn.Module):
         return context, attn
 
 
-# In[9]:
-
 
 class BERT_Fusion(nn.Module):
     def __init__(self, args):
         super(BERT_Fusion, self).__init__()
         self.question_num = args.num_questions
         self.bert1 = AutoModel.from_pretrained(args.bert1)
-#         self.bert2 = AutoModel.from_pretrained(pretrain_model_path2)
 
-#         self.attention = ScaledDotProductAttention(self.bert1.config.hidden_size)
         self.attention = AdditiveAttention(self.bert1.config.hidden_size)
         
         
         for param in self.bert1.base_model.parameters():
             param.requires_grad = True
             
-#         for param in self.bert2.base_model.parameters():
-#             param.requires_grad = True
-            
-#         for param in self.attention.parameters():
-#             param.requires_grad = True
-            
         self.classifier = nn.Sequential()
         self.classifier.add_module('c_fc1',  nn.Linear(self.bert1.config.hidden_size, 2))
-#         self.classifier.add_module('c_softmax', nn.Softmax(dim=1))
 
 
     def forward(self, c, q_input_ids, q_masks, a2_input_ids, a2_masks):
@@ -211,61 +181,21 @@ class BERT_Fusion(nn.Module):
         outputs_c = self.bert1(c[:,0], attention_mask = c[:,1])[1]
         
         outputs_q = self.bert1(q_input_ids[:,0], attention_mask = q_masks[:,0])[1]
-#         print(outputs_q.shape)
         outputs_q = outputs_q.unsqueeze(1)
-#         print(outputs_q.shape)
         outputs_a2 = self.bert1(a2_input_ids[:,0], attention_mask = a2_masks[:,0])[1].unsqueeze(1)
         
         for i in range(1, self.question_num):
             outputs_q = torch.cat((outputs_q, self.bert1(q_input_ids[:,i], attention_mask = q_masks[:,i])[1].unsqueeze(1)), dim=1)
-#             print(outputs_q.shape)
             outputs_a2 = torch.cat((outputs_a2, self.bert1(a2_input_ids[:,i], attention_mask = a2_masks[:,i])[1].unsqueeze(1)), dim=1)
         
-#         outputs_ar = self.bert2(ar[:,0], attention_mask = ar[:,1])
-#         print(len(outputs_cq))
-#         print((outputs_aa[0].shape))
-#         print((outputs_aa[1].shape))
-
-#         feature_news = max_pooling(outputs_news, mask_news)
-#         feature_tweets = max_pooling(outputs_tweets, mask_tweets)
-#         feature_c = outputs_c[1]
-#         feature_q = outputs_q[1]
-
-#         feature_c = outputs_c.last_hidden_state[:,0]
-#         feature_q = outputs_q.last_hidden_state[:,0]
-
-#         feature_ac = mean_pooling(outputs_ac, ac[:,1])
-#         feature_ar = mean_pooling(outputs_ar, ar[:,1])
-
-#         feature_a2 = outputs_a2[1]
-#         feature_ar = outputs_ar[1]
-
-#         print(feature_cq.shape)
-#         print(feature_a2.shape)
     
         outputs_c = torch.unsqueeze(outputs_c, 1)
-#         feature_q = torch.unsqueeze(feature_q, 1)
-#         feature_a2 = torch.unsqueeze(feature_a2, 1)        
-
-        
-#         cqaa = torch.cat((feature_c, feature_q, feature_ac, feature_ar), 1)
-        
-#         print(cqaa.shape)
-#         print('a2:',outputs_a2.shape)
-#         print('c:',outputs_c.shape)    
         
         output_att, attn = self.attention(outputs_c, outputs_q, outputs_a2)
-          
-#         print('output_att:',output_att.shape)
         
-        ### Class
         output = self.classifier(output_att)
         output = torch.squeeze(output, 1)
-#         print(output.shape)
-        ## Domain
-#         reverse_feature = ReverseLayerF.apply(news_tweets, lambd)
-#         domain_output = self.domain_classifier(reverse_feature)
-     
+        
         return output, attn
 
 
@@ -277,8 +207,6 @@ def main():
                        help="run name for the experiment")
     parser.add_argument("--bert1", default=None, type=str, required=True, 
                        help="bert model name for claim and questions")
-#     parser.add_argument("--bert2", default=None, type=str, required=True, 
-#                        help="bert model name for answers/answer pairs")
     parser.add_argument("--lr", default= 2e-5, type=float, required=False, 
                        help="learning rate")
     parser.add_argument("--bsz", default= 32, type=int, required=False, 
@@ -299,33 +227,10 @@ def main():
                        help="number of questions")
     
     args = parser.parse_args()
-    
-    # pretrain_model_path = 'deepset/sentence_bert'
-#     pretrain_model_path1 = 'sentence-transformers/LaBSE'
-#     pretrain_model_path2 = 'sentence-transformers/all-MiniLM-L6-v2'
-    # pretrain_model_path = 'bert-base-multilingual-cased'
-    # pretrain_model_path = 'allenai/longformer-base-4096'
-    # pretrain_model_path = 'bert-base-multilingual-uncased'
-#     pretrain_model_path1 = args.bert1
-#     pretrain_model_path2 = args.bert2
 
-#     run_name = 'nocat-c-q-aa-retrieved'
-
-    wandb.init(name = args.run_name, project='fack-check-qa', entity='fakejing', \
+    wandb.init(name = args.run_name, project='icassp2022', entity='fakejing', \
               tags = ['1-bert-nocat', 'gold', 'final','electra'], config = args, save_code = True)
 
-# pretrain_model_path1 = 'roberta-large'
-# pretrain_model_path2 = 'roberta-base'
-# pretrain_model_path1 = 'sentence-transformers/LaBSE'
-# pretrain_model_path1 = 'sentence-transformers/multi-qa-mpnet-base-dot-v1'
-# pretrain_model_path2 = 'sentence-transformers/all-MiniLM-L6-v2'
-# pretrain_model_path2 = 'sentence-transformers/paraphrase-mpnet-base-v2'
-# pretrain_model_path = 'bert-base-multilingual-cased'
-# pretrain_model_path = 'allenai/longformer-base-4096'
-# pretrain_model_path = 'bert-base-multilingual-uncased'
-# max_claim_len = 32
-# max_q_len = 32
-# max_a_len = 32
 
     logger = logging.getLogger("wandb")
     logger.setLevel(logging.ERROR)
@@ -338,22 +243,14 @@ def main():
     df_train_set = df_train_set.sample(frac=1, random_state=1)
 
 
-    # In[12]:
-
-
 #     df_train_set = df_train_set[-50:]
 #     df_dev_set = df_dev_set[-50:]
 #     df_test_set = df_test_set[-50:]
 
 
     train_set = MyDataset(df_train_set, args)
-
-
     dev_set = MyDataset(df_dev_set, args)
-
-
     test_set = MyDataset(df_test_set, args)
-
 
     train_loader = DataLoader(dataset=train_set, batch_size=args.bsz, shuffle=False, num_workers = args.num_workers)
     val_loader = DataLoader(dataset=dev_set, batch_size=args.bsz, num_workers = args.num_workers, shuffle=False)
@@ -362,7 +259,6 @@ def main():
     model = BERT_Fusion(args)
     if torch.cuda.is_available():
         print("CUDA")
-    #     model = torch.nn.DataParallel(model)
         model.cuda()
 
     wandb.watch(model)
@@ -377,14 +273,12 @@ def main():
     best_validate_acc = 0.000
     best_loss = 100
     best_validate_dir = ''
-#     output_file = 'output/'
 
     for epoch in range(args.epochs):
 
         model.train()
 
         optimizer.lr = args.lr
-        #rgs.lambd = lambd
 
         start_time = time.time()
         cost_vector = []
@@ -399,7 +293,6 @@ def main():
 
             train_labels = to_var(train_labels)
 
-            # Forward + Backward + Optimize
             optimizer.zero_grad()
 
             train_c = to_var(train_c)
@@ -443,7 +336,6 @@ def main():
 
             validate_a2s_input_ids = to_var(val_a2s_input_ids)
             validate_a2s_masks = to_var(val_a2s_masks)
-    #         validate_ar = to_var(val_ar)
 
             with torch.no_grad():
                 validate_output, _ = model(validate_c, validate_qs_input_ids, validate_qs_masks, \
@@ -477,7 +369,7 @@ def main():
 
     torch.save(model.state_dict(), best_validate_dir)
 
-
+    ## Test
 
     model = BERT_Fusion(args)
     model.load_state_dict(torch.load(best_validate_dir))
@@ -488,15 +380,10 @@ def main():
 
     test_loader = DataLoader(dataset=test_set, batch_size=args.bsz, num_workers = args.num_workers, shuffle=False)
 
-
-    # In[ ]:
-
-
     print('testing model')
     test_score = []
     test_pred = []
     test_true = []
-#     weights = []
     for i, (test_c, test_qs_input_ids, test_qs_masks, test_a2s_input_ids, test_a2s_masks, test_labels) in enumerate(test_loader):
         test_labels = to_var(test_labels)
 
@@ -549,8 +436,6 @@ def main():
           % (test_confusion_matrix))
 
     print('Saving results')
-
-
 
 
 if __name__ == "__main__":

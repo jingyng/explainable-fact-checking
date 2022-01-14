@@ -7,7 +7,7 @@ import re
 
 import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="4"
 
 claim_train = dir_claim +'train.jsonl'
 claim_dev = dir_claim +'dev.jsonl'
@@ -70,6 +70,5 @@ for index, row in df_claims.iterrows():
 
 answer_gold = nlp.inference_from_dicts(dicts=QA_input_gold)
 
-import json
 with open('fm2-gold-answer-electra.json', 'w') as f:
     json.dump(answer_gold, f)

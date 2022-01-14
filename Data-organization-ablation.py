@@ -5,6 +5,7 @@ import re
 
 dir_qa='../fact-check-summarization/gen-qas/'
 dir_claim='../fool-me-twice/dataset/'
+dir_answer_evi='../qaeval/'
 
 claim_train = dir_claim +'train.jsonl'
 claim_dev = dir_claim +'dev.jsonl'
@@ -45,7 +46,7 @@ df_qa = df_qa[0]
 
 df_claims['qas'] = df_qa
 
-df_answer_gold = pd.read_json('fm2-gold-answer-electra.json')
+df_answer_gold = pd.read_json(dir_answer_evi + 'fm2-gold-answer-electra.json')
 
 def relabel(row):
     if row['label'] == "SUPPORTS" :

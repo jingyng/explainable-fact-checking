@@ -3,9 +3,9 @@
 
 import wandb
 
-# import os
-# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-# os.environ["CUDA_VISIBLE_DEVICES"]="2"
+import os
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 
 import random
 import numpy as np
@@ -91,20 +91,13 @@ def to_np(x):
 class BERT_Fusion(nn.Module):
     def __init__(self, args):
         super(BERT_Fusion, self).__init__()
-#         self.event_num = 4
         self.bert1 = AutoModel.from_pretrained(args.bert1)
-#         self.bert2 = AutoModel.from_pretrained(args.bert2)
         
         for param in self.bert1.base_model.parameters():
             param.requires_grad = True
             
-#         for param in self.bert2.base_model.parameters():
-#             param.requires_grad = True
-            
         self.classifier = nn.Sequential()
         self.classifier.add_module('c_fc1',  nn.Linear(self.bert1.config.hidden_size, 2))
-#         self.classifier.add_module('c_softmax', nn.Softmax(dim=1))
-
 
     def forward(self, input_ids_aa, mask_aa):
         
@@ -112,13 +105,7 @@ class BERT_Fusion(nn.Module):
 
         feature_aa = outputs_aa[1]
 
-        ### Class
-#         feature_aa = torch.unsqueeze(feature_aa, 1) 
-        print(feature_aa.shape)
-
         output = self.classifier(feature_aa)
-#         output = torch.squeeze(output, 1)
-        print(output.shape)
 
         return output
 
@@ -130,8 +117,6 @@ def main():
                        help="run name for the experiment")
     parser.add_argument("--bert1", default='microsoft/mpnet-base', type=str, required=False, 
                        help="bert model name for claim and questions")
-#     parser.add_argument("--bert2", default=None, type=str, required=True, 
-#                        help="bert model name for answers/answer pairs")
     parser.add_argument("--lr", default= 2e-5, type=float, required=False, 
                        help="learning rate")
     parser.add_argument("--bsz", default= 16, type=int, required=False, 
@@ -152,8 +137,8 @@ def main():
     
     args = parser.parse_args()
 
-    wandb.init(name = args.run_name, project='fack-check-qa', entity='fakejing', \
-              tags = ['1-bert-concat', 'gold', 'ori_answer','final','electra'], config = args, save_code = True)
+    wandb.init(name = args.run_name, project='icassp2022', entity='fakejing', \
+              tags = ['gold','final','electra'], config = args, save_code = True)
     
 
     logger = logging.getLogger("wandb")
@@ -184,7 +169,6 @@ def main():
     model = BERT_Fusion(args)
     if torch.cuda.is_available():
         print("CUDA")
-    #     model = torch.nn.DataParallel(model)
         model.cuda()
 
     wandb.watch(model)

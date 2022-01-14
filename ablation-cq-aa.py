@@ -3,9 +3,9 @@
 
 import wandb
 
-# import os
-# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-# os.environ["CUDA_VISIBLE_DEVICES"]="2"
+import os
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="4"
 
 import random
 import numpy as np
@@ -55,7 +55,6 @@ class MyDataset(Dataset):
     def __init__(self, df, args):
 
         self.tokenizer1 = AutoTokenizer.from_pretrained(args.bert1)
-#         self.tokenizer2 = AutoTokenizer.from_pretrained(args.bert2)
         
         sent1 = list(zip(df.text, df.question))
         sent2 = list(zip(df.answer_text, df.answer_gold))
@@ -104,35 +103,25 @@ def to_np(x):
 class BERT_Fusion(nn.Module):
     def __init__(self, args):
         super(BERT_Fusion, self).__init__()
-#         self.event_num = 4
         self.bert1 = AutoModel.from_pretrained(args.bert1)
-#         self.bert2 = AutoModel.from_pretrained(args.bert2)
         
         for param in self.bert1.base_model.parameters():
             param.requires_grad = True
             
-#         for param in self.bert2.base_model.parameters():
-#             param.requires_grad = True
-            
         self.classifier = nn.Sequential()
         self.classifier.add_module('c_fc1',  nn.Linear(2*self.bert1.config.hidden_size, 2))
-#         self.classifier.add_module('c_softmax', nn.Softmax(dim=1))
 
 
     def forward(self, input_ids_cq, mask_cq, input_ids_aa, mask_aa):
         
         outputs_cq = self.bert1(input_ids_cq, attention_mask = mask_cq)
         outputs_aa = self.bert1(input_ids_aa, attention_mask = mask_aa)
-#         print(len(outputs))
 
         feature_cq = outputs_cq[1]
         feature_aa = outputs_aa[1]
-#         print(feature_cq.shape)
-#         print(feature_aa.shape)
 
         cqaa = torch.cat((feature_cq, feature_aa), 1)
 
-        ### Class
         output = self.classifier(cqaa)
      
         return output
@@ -145,8 +134,6 @@ def main():
                        help="run name for the experiment")
     parser.add_argument("--bert1", default=None, type=str, required=True, 
                        help="bert model name for claim and questions")
-#     parser.add_argument("--bert2", default=None, type=str, required=True, 
-#                        help="bert model name for answers/answer pairs")
     parser.add_argument("--lr", default= 2e-5, type=float, required=False, 
                        help="learning rate")
     parser.add_argument("--bsz", default= 16, type=int, required=False, 
@@ -166,20 +153,9 @@ def main():
     
     
     args = parser.parse_args()
-    
-    # pretrain_model_path = 'deepset/sentence_bert'
-#     pretrain_model_path1 = 'sentence-transformers/LaBSE'
-#     pretrain_model_path2 = 'sentence-transformers/all-MiniLM-L6-v2'
-    # pretrain_model_path = 'bert-base-multilingual-cased'
-    # pretrain_model_path = 'allenai/longformer-base-4096'
-    # pretrain_model_path = 'bert-base-multilingual-uncased'
-#     pretrain_model_path1 = args.bert1
-#     pretrain_model_path2 = args.bert2
 
-#     run_name = 'concat-cq-aa-gold'
-
-    wandb.init(name = args.run_name, project='fack-check-qa', entity='fakejing', \
-              tags = ['1-bert-concat', 'gold', 'ori_answer','final','electra'], config = args, save_code = True)
+    wandb.init(name = args.run_name, project='icassp2022', entity='fakejing', \
+              tags = ['gold','final','electra'], config = args, save_code = True)
     
 
     logger = logging.getLogger("wandb")

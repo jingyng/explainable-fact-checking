@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
 import wandb
 
-# import os
-# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-# os.environ["CUDA_VISIBLE_DEVICES"]="0"
+import os
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 import numpy as np
 import argparse
@@ -55,10 +53,6 @@ class MyDataset(Dataset):
     def __init__(self, df, args):
 
         self.tokenizer1 = AutoTokenizer.from_pretrained(args.bert1)
-#         self.tokenizer2 = AutoTokenizer.from_pretrained(pretrain_model_path2)
-        
-
-#         a2 = list(zip(df.answer_text, df.answer_retrieved))
         
         claim_input = self.tokenizer1.batch_encode_plus(
             batch_text_or_text_pairs=df.text.to_list(),  # the sentence to be encoded
@@ -78,9 +72,6 @@ class MyDataset(Dataset):
     
     def __len__(self):
         return len(self.y_data)
-
-
-# In[5]:
 
 
 def to_var(x):
@@ -118,7 +109,6 @@ class BERT_Fusion(nn.Module):
         return output
 
 
-    
 def main():
 
     parser = argparse.ArgumentParser()
@@ -126,8 +116,6 @@ def main():
                        help="run name for the experiment")
     parser.add_argument("--bert1", default='microsoft/mpnet-base', type=str, required=False, 
                        help="bert model name for claim and questions")
-#     parser.add_argument("--bert2", default=None, type=str, required=True, 
-#                        help="bert model name for answers/answer pairs")
     parser.add_argument("--lr", default= 2e-5, type=float, required=False, 
                        help="learning rate")
     parser.add_argument("--bsz", default= 32, type=int, required=False, 
@@ -150,19 +138,16 @@ def main():
     args = parser.parse_args()
     
 
-    wandb.init(name = args.run_name, project='fack-check-qa', entity='fakejing', \
+    wandb.init(name = args.run_name, project='icassp2022', entity='fakejing', \
               tags = ['final','claim-only'], config = args, save_code = True)
 
 
-    df_train_set = pd.read_pickle(args.data_path + 'qa-fool-me-twice-train-nocat-cqaa-electra.pkl')
-    df_dev_set  = pd.read_pickle(args.data_path + 'qa-fool-me-twice-dev-nocat-cqaa-electra.pkl')
-    df_test_set = pd.read_pickle(args.data_path + 'qa-fool-me-twice-test-nocat-cqaa-electra.pkl')
+    df_train_set = pd.read_pickle(args.data_path + 'qa-fool-me-twice-train-oria-electra.pkl')
+    df_dev_set  = pd.read_pickle(args.data_path + 'qa-fool-me-twice-dev-oria-electra.pkl')
+    df_test_set = pd.read_pickle(args.data_path + 'qa-fool-me-twice-test-oria-electra.pkl')
 
 
     df_train_set = df_train_set.sample(frac=1, random_state=1)
-
-
-    # In[12]:
 
 
 #     df_train_set = df_train_set[-50:]
@@ -220,7 +205,6 @@ def main():
 
             train_labels = to_var(train_labels)
 
-            # Forward + Backward + Optimize
             optimizer.zero_grad()
 
             train_c = to_var(train_c)
