@@ -42,3 +42,16 @@ Five different inputs are compared:
 - AA: answer-pairs only (all answers concatenated,code can be found in `ablation-aa.py` )
 - Q-AA: questions and answer pairs (code can be found in `ablation-q-aa.py`)
 - CQ-AA: claim, questions and answer pairs (code can be found in `ablation-cq-aa.py`)
+
+## Citation
+If you find our work interesting and would like to adapt to your research, please kindly cite our paper (pre-print, official published paper coming soon).
+```
+@misc{yang2021explainable,
+      title={Explainable Fact-checking through Question Answering}, 
+      author={Yang, Jing and Vega-Oliveros, Didier and Seibt, Ta{\'\i}s and Rocha, Anderson},
+      eprint={2110.05369},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+      year={2021}
+}
+```
