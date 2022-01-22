@@ -48,7 +48,7 @@ If you find our work interesting and would like to adapt to your research, pleas
 ```
 @misc{yang2021explainable,
       title={Explainable Fact-checking through Question Answering}, 
-      author={Yang, Jing and Vega-Oliveros, Didier and Seibt, Ta{\'\i}s and Rocha, Anderson},
+      author={Yang, Jing and Vega-Oliveros, Didier and Seibt, Taís and Rocha, Anderson},
       eprint={2110.05369},
       archivePrefix={arXiv},
       primaryClass={cs.CL}
